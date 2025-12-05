@@ -78,7 +78,7 @@ void addRange(std::string line, std::vector<std::pair<int64_t,int64_t>> &ranges)
 }
 
 void updateRange(std::pair<int64_t,int64_t> newRange, std::vector<std::pair<int64_t,int64_t>> &ranges, std::vector<std::pair<int64_t,int64_t>>::iterator it) {
-    for(auto iter = it - 1; iter >= ranges.begin(); iter--) {
+    for(auto iter = it + 1; iter != ranges.end(); iter++) {
         if(((newRange.first) <= (iter->second)) && ((newRange.second) >= (iter->first))) {
             it->first = 0;
             it->second = 0;
