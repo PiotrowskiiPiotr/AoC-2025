@@ -3,6 +3,9 @@
 #include <map>
 #include <vector>
 #include <cmath>
+#include <cstdint>
+#include <string>
+#include <algorithm>
 
 struct Node {
         int64_t x;
@@ -16,6 +19,10 @@ void writeLine(std::string line, std::map<int64_t, std::vector<int64_t>> &groups
 void listClosestConnections(std::vector<Node> &nodes, std::vector<std::pair<double,std::pair<int64_t,int64_t>>> &connections, int32_t number);
 
 void findBiggestNumber(double value, std::vector<std::pair<double,std::pair<int64_t,int64_t>>> &connections, int64_t first, int64_t second);
+
+void modifyGroups(std::vector<std::pair<double,std::pair<int64_t,int64_t>>> connections,std::map<int64_t, std::vector<int64_t>> &groups, std::vector<Node> &nodes);
+
+int64_t multiplyGreatestCircuits(std::map<int64_t, std::vector<int64_t>> groups, int numbers);
 
 int main() {
 
@@ -40,25 +47,11 @@ int main() {
     std::vector<std::pair<double,std::pair<int64_t,int64_t>>> connections {};
 
 
-    listClosestConnections(nodes,connections,10);
+    listClosestConnections(nodes,connections,1000);
 
-    // --- Printowanie --- //
-/*
-    for(auto it = nodes.begin(); it != nodes.end(); it++) {
-        std::cout << it->x << " " << it->y << " " << it->z << " " << it->group << std::endl;
-    }
+    modifyGroups(connections,groups,nodes);
 
-    for(auto g : groups) {
-        std::cout << g.first << "      " ;
-        for(auto it = g.second.begin(); it != g.second.end(); it++) {
-            std::cout << *it;
-        }
-        std::cout << std:: endl;
-    }
-*/
-    for(auto it = connections.begin(); it != connections.end(); it++) {
-        std::cout << it->first << " " << it->second.first << " " << it->second.second << std::endl;
-    }
+    std::cout << multiplyGreatestCircuits(groups,3);
 
     return 0;
 }
@@ -104,7 +97,7 @@ void writeLine(std::string line, std::map<int64_t, std::vector<int64_t>> &groups
 void listClosestConnections(std::vector<Node> &nodes, std::vector<std::pair<double,std::pair<int64_t,int64_t>>> &connections, int32_t number) {
 
     for(int32_t i = 0; i < number; i++) {
-        connections.push_back(std::make_pair(0,std::pair<int64_t,int64_t>(0,0)));
+        connections.push_back(std::make_pair(double(INT64_MAX),std::pair<int64_t,int64_t>(0,0)));
     }
 
     for(int32_t i = 0; i < nodes.size(); i++) {
@@ -120,7 +113,7 @@ void listClosestConnections(std::vector<Node> &nodes, std::vector<std::pair<doub
 
 void findBiggestNumber(double value, std::vector<std::pair<double,std::pair<int64_t,int64_t>>> &connections, int64_t first, int64_t second) {
     for(int32_t i = connections.size() - 1; i >= 0; i --) {
-        if(value < connections[i].first) {
+        if(value > connections[i].first) {
             return;
         } else {
             if(i == (connections.size() - 1)) {
@@ -131,4 +124,37 @@ void findBiggestNumber(double value, std::vector<std::pair<double,std::pair<int6
             }
         }
     }
+}
+
+void modifyGroups(std::vector<std::pair<double,std::pair<int64_t,int64_t>>> connections,std::map<int64_t, std::vector<int64_t>> &groups, std::vector<Node> &nodes) {
+    for(auto it = connections.begin(); it != connections.end(); it++) {
+        if(nodes[it->second.second].group != nodes[it->second.first].group) {
+            int64_t index = nodes[it->second.second].group;
+            for(auto iter = groups[index].begin(); iter != groups[index].end(); iter++) {
+                groups.at(nodes[it->second.first].group).push_back(*iter);
+            }
+
+            for(auto iter = groups[index].begin(); iter != groups[index].end(); iter++) {
+                    nodes[*iter].group = nodes[it->second.first].group;
+            }
+            groups.erase(index);
+        }
+        
+    }
+}
+
+int64_t multiplyGreatestCircuits(std::map<int64_t, std::vector<int64_t>> groups, int numbers) {
+    std::vector<int64_t> circuitsSizes {};
+    for(auto m : groups) {
+        circuitsSizes.push_back(m.second.size()); 
+    }
+
+    sort(circuitsSizes.begin(), circuitsSizes.end());
+
+    int64_t num {1};
+
+    for(int i = 0; i < numbers; i++) {
+        num *= circuitsSizes[circuitsSizes.size() - 1 -i];
+    }
+    return num;
 }
